@@ -8,35 +8,58 @@ namespace Gorman.API.Framework {
     public class MapService
         : BaseService {
 
-        public MapService(Uri domain) : base(domain) {
+        public MapService(Uri domain)
+            : base(domain) {
             _addMapValidator = new MapValidator();
         }
 
-        public MapService(IRestClient restClient, IMapValidator mapValidator) : base(restClient) {
+        public MapService(IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator)
+            : base(restClient, responseValidator) {
             _addMapValidator = mapValidator;
         }
 
         //todo in the future let people get by GET /user/activity_name
         public async Task<Map> Get(int id) {
-            if (!IsInitialised)
-                Initialise();
+            await Initialise();
 
-            var mapsEndpoint = new Uri(_endpoints["map_url"].Replace("{/map_id}", id.ToString()));
-            var request = new RestRequest(mapsEndpoint, Method.POST);
-            var result = await _restClient.ExecuteTaskAsync<Map>(request);
-            return result.Data;
+            var request = CreateRequest(Method.GET);
+            request.AddParameter("mapId", id, ParameterType.UrlSegment);
+
+            var restResponse = await _restClient.ExecuteTaskAsync<Response<Map>>(request);
+            var map = _responseValidator.Validate(restResponse.Data);
+            return map;
         }
 
         public async Task<Map> Add(Map map) {
-            if (!_addMapValidator.IsValidForAdd(map))
-                throw new Exception(); //have to throw because of return type
+            await Initialise();
 
-            var request = new RestRequest("/maps", Method.POST);
-            request.AddJsonBody(map);
-            var result = await _restClient.ExecuteTaskAsync<Map>(request);
-            return result.Data;
+            if (!_addMapValidator.IsValidForAdd(map))
+                throw new Exception();
+
+            var request = CreateRequest(Method.POST);
+            request.AddBody(map);
+
+            var restResponse = await _restClient.ExecuteTaskAsync<Response<Map>>(request);
+            var response = _responseValidator.Validate(restResponse.Data);
+            return response;
+        }
+
+        private RestRequest CreateRequest(Method method) {
+            return new RestRequest(_mapsEndpoint, method) {
+                RequestFormat = DataFormat.Json
+            };
+        }
+
+        protected override async Task Initialise() {
+            if (IsInitialised)
+                return;
+
+            await base.Initialise();
+            _mapsEndpoint = new Uri(_endpoints["map_url"]);
         }
 
         private readonly IMapValidator _addMapValidator;
+        private Uri _mapsEndpoint;
     }
+
 }
