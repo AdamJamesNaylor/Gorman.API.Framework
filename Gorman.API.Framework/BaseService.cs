@@ -2,7 +2,7 @@ namespace Gorman.API.Framework {
     using System;
     using System.Collections.Specialized;
     using System.Threading.Tasks;
-    using Domain;
+    using API.Domain;
     using RestSharp;
 
     public abstract class BaseService {
@@ -19,15 +19,26 @@ namespace Gorman.API.Framework {
             IsInitialised = false;
         }
 
-        protected async virtual Task Initialise() {
+        protected virtual async Task Initialise() {
             if (IsInitialised)
                 return;
 
             var request = new RestRequest(Method.GET);
             var result = await _restClient.ExecuteTaskAsync<EndpointListResponse>(request);
 
-            _endpoints.Add("maps_url", result.Data.MapUrl);
+            _endpoints.Add("maps_url", result.Data.MapsUrl);
 
+            IsInitialised = true;
+        }
+
+        protected virtual void Initialise(BaseService initialisedService) {
+            if (IsInitialised)
+                return;
+
+            _endpoints.Clear();
+            foreach (var key in initialisedService._endpoints.Keys)
+                _endpoints.Add(key.ToString(), initialisedService._endpoints[key.ToString()]);
+            
             IsInitialised = true;
         }
 

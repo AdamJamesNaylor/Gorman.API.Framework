@@ -1,6 +1,6 @@
 ﻿namespace Gorman.API.Framework {
     using System;
-    using Domain;
+    using API.Domain;
 
     public class ResponseValidator
         : IResponseValidator {
