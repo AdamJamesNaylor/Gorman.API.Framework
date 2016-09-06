@@ -1,11 +1,18 @@
-namespace Gorman.API.Framework {
+namespace Gorman.API.Framework.Services {
     using System;
     using System.Collections.Specialized;
     using System.Threading.Tasks;
     using API.Domain;
     using RestSharp;
 
-    public abstract class BaseService {
+    public interface IBaseService {
+        bool IsInitialised { get; }
+        void Initialise(BaseService initialisedService);
+    }
+
+    public abstract class BaseService
+        : IBaseService {
+
         public bool IsInitialised { get; internal set; }
 
         protected BaseService(IRestClient restClient, IResponseValidator responseValidator) {
@@ -31,14 +38,14 @@ namespace Gorman.API.Framework {
             IsInitialised = true;
         }
 
-        protected virtual void Initialise(BaseService initialisedService) {
+        public virtual void Initialise(BaseService initialisedService) {
             if (IsInitialised)
                 return;
 
             _endpoints.Clear();
             foreach (var key in initialisedService._endpoints.Keys)
                 _endpoints.Add(key.ToString(), initialisedService._endpoints[key.ToString()]);
-            
+
             IsInitialised = true;
         }
 

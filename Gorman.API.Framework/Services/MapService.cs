@@ -1,28 +1,34 @@
 ﻿
-namespace Gorman.API.Framework {
+namespace Gorman.API.Framework.Services {
     using System;
     using System.Threading.Tasks;
+    using Convertors;
     using RestSharp;
-    using ApiMap = API.Domain.Map;
-    using Response = API.Domain.Response<Domain.Map>;
+    using Response = API.Domain.Response<API.Domain.Map>;
     using Map = Domain.Map;
 
+    public interface IMapService
+        : IBaseService {
+        Task<Map> Get(long id);
+    }
+
     public class MapService
-        : BaseService {
+        : BaseService, IMapService {
 
         public MapService(Uri domain)
             : base(domain) {
             _addMapValidator = new MapValidator();
         }
 
-        public MapService(IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator, IMapConvertor mapConvertor)
+        public MapService(IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator,
+            IMapConvertor mapConvertor)
             : base(restClient, responseValidator) {
             _addMapValidator = mapValidator;
+            _mapConvertor = mapConvertor;
         }
 
         //todo in the future let people get by GET /user/activity_name
-        public async Task<Map> Get(long id)
-        {
+        public async Task<Map> Get(long id) {
             await Initialise();
 
             var request = CreateRequest(Method.GET);
@@ -30,7 +36,7 @@ namespace Gorman.API.Framework {
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
             var map = _responseValidator.Validate(restResponse.Data);
-            return map;
+            return _mapConvertor.Convert(map);
         }
 
         //public async Task<Map> Add(Map map) {
@@ -62,10 +68,7 @@ namespace Gorman.API.Framework {
         }
 
         private readonly IMapValidator _addMapValidator;
+        private readonly IMapConvertor _mapConvertor;
         private Uri _mapsEndpoint;
-    }
-
-    public interface IMapConvertor {
-        Map Convert(ApiMap map);
     }
 }
