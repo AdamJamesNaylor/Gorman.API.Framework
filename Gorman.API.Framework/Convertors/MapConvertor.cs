@@ -11,7 +11,7 @@ namespace Gorman.API.Framework.Convertors {
         : IMapConvertor {
         public Map Convert(ApiMap map) {
             return new Map {
-
+                Id = map.Id
             };
         }
     }

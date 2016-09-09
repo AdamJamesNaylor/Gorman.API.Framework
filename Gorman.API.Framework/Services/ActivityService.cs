@@ -1,59 +1,50 @@
 ﻿
-namespace Gorman.API.Framework.Services
-{
-    using System;
+namespace Gorman.API.Framework.Services {
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
+    using Convertors;
     using Domain;
     using RestSharp;
+    using Response = API.Domain.Response<System.Collections.Generic.List<API.Domain.Activity>>; //todo should this be a list?
 
-    //options
-    //1) Add all URLs to root. Means long names and could be messy
-    //2) Naeivly hardcode the URLs into the framework. Brittle but easiest.
-    //3) Navigate everytime
-    //4) Add URLs to each framework object and pass those around
+    public interface IActivityService {
+        Task<Collection<Activity>> List(Map map);
+        Task<Collection<Activity>> List(long mapId);
+    }
 
     public class ActivityService
-        : BaseService {
+        : BaseService, IActivityService {
 
-        public ActivityService(IRestClient restClient, IResponseValidator responseValidator)
-            : base(restClient, responseValidator) {
+        public ActivityService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
+            IActivityConvertor activityConvertor)
+            : base(endpoints, restClient, responseValidator) {
+            _activityConvertor = activityConvertor;
+        }
+
+        public ActivityService(Endpoints endpoints)
+            : base(endpoints) {
 
         }
 
-        public ActivityService(Uri domain)
-            : base(domain) {
-
+        public async Task<Collection<Activity>> List(Map map) {
+            return await List(map.Id);
         }
 
         public async Task<Collection<Activity>> List(long mapId) {
-            await Initialise();
-
             var request = CreateRequest(Method.GET);
-            request.AddParameter("mapId", id, ParameterType.UrlSegment);
+            request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
-            var map = _responseValidator.Validate(restResponse.Data);
-            return _mapConvertor.Convert(map);
+            var result = _responseValidator.Validate(restResponse.Data);
+            return _activityConvertor.Convert(result);
         }
 
-        private RestRequest CreateRequest(Method method)
-        {
-            return new RestRequest(_mapsEndpoint, method)
-            {
+        private RestRequest CreateRequest(Method method) {
+            return new RestRequest(_endpoints.MapActivitiesUrl, method) {
                 RequestFormat = DataFormat.Json
             };
         }
 
-        protected override async Task Initialise()
-        {
-            if (IsInitialised)
-                return;
-
-            await base.Initialise();
-            _activitesEndpoint = new Uri(_endpoints["map_url"]);
-        }
-
-
+        private readonly IActivityConvertor _activityConvertor;
     }
 }

@@ -1,6 +1,6 @@
 ﻿
 namespace Gorman.API.Framework.Services {
-    using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Convertors;
     using Domain;
@@ -9,29 +9,28 @@ namespace Gorman.API.Framework.Services {
     public class FullGraphService
         : BaseService {
 
-        public FullGraphService(IRestClient restClient, IResponseValidator responseValidator, IMapService mapService)
-            : base(restClient, responseValidator) {
+        public FullGraphService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator, IMapService mapService, IActivityService activityService)
+            : base(endpoints, restClient, responseValidator) {
             _mapService = mapService;
+            _activityService = activityService;
         }
 
-        public FullGraphService(Uri domain)
-            : base(domain) {
-            _mapService = new MapService(_restClient, new MapValidator(), _responseValidator, new MapConvertor());
+        public FullGraphService(Endpoints endpoints)
+            : base(endpoints) {
+            _mapService = new MapService(endpoints, _restClient, new MapValidator(), _responseValidator, new MapConvertor());
         }
 
         public async Task<Map> Get(long mapId) {
-            await Initialise();
+            var mapTask = _mapService.Get(mapId);
+            var activitesTask = _activityService.List(mapId);
 
-            var map = await _mapService.Get(mapId);
+            var map = await mapTask;
+            map.Activities = (await activitesTask).ToList();
+
             return map;
         }
 
-        protected override async Task Initialise() {
-            await base.Initialise();
-
-            _mapService.Initialise(this);
-        }
-
         private readonly IMapService _mapService;
+        private readonly IActivityService _activityService;
     }
 }
