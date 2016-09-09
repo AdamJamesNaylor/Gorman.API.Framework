@@ -14,7 +14,8 @@ namespace Gorman.API.Framework.Convertors {
         : IActivityConvertor {
         public Activity Convert(API.Domain.Activity activity) {
             return new Activity {
-                Id = activity.Id
+                Id = activity.Id,
+                MapId = activity.MapId
             };
         }
 

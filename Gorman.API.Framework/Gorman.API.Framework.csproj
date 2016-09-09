@@ -65,6 +65,9 @@
     <Compile Include="Services\FullGraphService.cs" />
     <Compile Include="Services\ActorService.cs" />
     <Compile Include="Services\MapService.cs" />
+    <Compile Include="Validators\AddActionValidator.cs" />
+    <Compile Include="Validators\AddActivityValidator.cs" />
+    <Compile Include="Validators\AddMapValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

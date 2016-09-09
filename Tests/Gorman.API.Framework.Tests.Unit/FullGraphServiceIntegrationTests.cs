@@ -8,6 +8,7 @@ namespace Gorman.API.Framework.Tests.Unit {
     using Moq;
     using RestSharp;
     using Services;
+    using Validators;
     using Xunit;
     using ApiMap = API.Domain.Map;
     using ApiActivity = API.Domain.Activity;
@@ -36,20 +37,23 @@ namespace Gorman.API.Framework.Tests.Unit {
             restClient.Setup(r => r.ExecuteTaskAsync<Response<ApiMap>>(It.IsAny<IRestRequest>()))
                 .Returns((IRestRequest r) => CreateMockResponse<Response<ApiMap>>(response => response.Data.Data = new ApiMap { Id = r.FindParameter<int>("mapId") }).ToTask());
 
+            var addActivityValidator = new AddActivityValidator();
             var activityConvertor = new ActivityConvertor();
-            var activityService = new ActivityService(endpoints, restClient.Object, responseValidator, activityConvertor);
+            var activityService = new ActivityService(endpoints, restClient.Object, responseValidator, activityConvertor, addActivityValidator);
 
             restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActivity>>>(It.IsAny<IRestRequest>()))
                 .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActivity>>>(response => response.Data.Data = new List<ApiActivity> {new ApiActivity { Id = 456 }, new ApiActivity()}).ToTask());
 
+            var addActorValidator = new AddActorValidator();
             var actorConvertor = new ActorConvertor();
-            var actorService = new ActorService(endpoints, restClient.Object, responseValidator, actorConvertor);
+            var actorService = new ActorService(endpoints, restClient.Object, responseValidator, actorConvertor, addActorValidator);
 
             restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActor>>>(It.IsAny<IRestRequest>()))
                 .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActor>>>(response => response.Data.Data = new List<ApiActor> { new ApiActor(), new ApiActor(), new ApiActor() }).ToTask());
 
+            var addActionValidator = new AddActionValidator();
             var actionConvertor = new ActionConvertor();
-            var actionService = new ActionService(endpoints, restClient.Object, responseValidator, actionConvertor);
+            var actionService = new ActionService(endpoints, restClient.Object, responseValidator, actionConvertor, addActionValidator);
 
             restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiAction>>>(It.IsAny<IRestRequest>()))
                 .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiAction>>>(response => response.Data.Data = new List<ApiAction>()).ToTask());
