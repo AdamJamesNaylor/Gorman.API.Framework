@@ -40,6 +40,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Convertors\ActionConvertor.cs" />
     <Compile Include="Convertors\ActorConvertor.cs" />
     <Compile Include="Convertors\MapConvertor.cs" />
     <Compile Include="Endpoints.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="ResponseValidator.cs" />
     <Compile Include="Convertors\ActivityConvertor.cs" />
     <Compile Include="Services\ActivityService.cs" />
+    <Compile Include="Services\ActionService.cs" />
     <Compile Include="Services\BaseService.cs" />
     <Compile Include="Services\FullGraphService.cs" />
     <Compile Include="Services\ActorService.cs" />

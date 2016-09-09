@@ -1,6 +1,7 @@
 namespace Gorman.API.Framework.Tests.Unit {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using API.Domain;
     using Convertors;
@@ -10,6 +11,8 @@ namespace Gorman.API.Framework.Tests.Unit {
     using Xunit;
     using ApiMap = API.Domain.Map;
     using ApiActivity = API.Domain.Activity;
+    using ApiActor = API.Domain.Actor;
+    using ApiAction = API.Domain.Action;
 
     public class FullGraphServiceIntegrationTests {
 
@@ -19,19 +22,10 @@ namespace Gorman.API.Framework.Tests.Unit {
 
             restClient.Setup(r => r.BaseUrl).Returns(new Uri("http://www.blah.com"));
 
-            restClient.Setup(r => r.ExecuteTaskAsync<EndpointListResponse>(It.IsAny<IRestRequest>()))
-                .Returns(() => new RestResponse<EndpointListResponse> {Data = new EndpointListResponse {MapsUrl = "/blah"}}.ToTask());
-
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<ApiMap>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<ApiMap>>(response => response.Data.Data = new ApiMap { Id = r.FindParameter<int>("mapId") }).ToTask());
-
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActivity>>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActivity>>>(response => response.Data.Data = new List<ApiActivity> {new ApiActivity(), new ApiActivity()}).ToTask());
-
-            restClient.Setup(r => r.ExecuteTaskAsync<EndpointListResponse>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<EndpointListResponse>().ToTask());
-
             var responseValidator = new ResponseValidator();
+
+            restClient.Setup(r => r.ExecuteTaskAsync<EndpointListResponse>(It.IsAny<IRestRequest>()))
+                .Returns(() => new RestResponse<EndpointListResponse> { Data = new EndpointListResponse { MapsUrl = "/blah" } }.ToTask());
 
             var endpoints = await Endpoints.Get(restClient.Object, responseValidator);
 
@@ -39,17 +33,42 @@ namespace Gorman.API.Framework.Tests.Unit {
             var mapConvertor = new MapConvertor();
             var mapService = new MapService(endpoints, restClient.Object, mapValidator, responseValidator, mapConvertor);
 
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<ApiMap>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<Response<ApiMap>>(response => response.Data.Data = new ApiMap { Id = r.FindParameter<int>("mapId") }).ToTask());
+
             var activityConvertor = new ActivityConvertor();
             var activityService = new ActivityService(endpoints, restClient.Object, responseValidator, activityConvertor);
 
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActivity>>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActivity>>>(response => response.Data.Data = new List<ApiActivity> {new ApiActivity { Id = 456 }, new ApiActivity()}).ToTask());
+
+            var actorConvertor = new ActorConvertor();
+            var actorService = new ActorService(endpoints, restClient.Object, responseValidator, actorConvertor);
+
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActor>>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActor>>>(response => response.Data.Data = new List<ApiActor> { new ApiActor(), new ApiActor(), new ApiActor() }).ToTask());
+
+            var actionConvertor = new ActionConvertor();
+            var actionService = new ActionService(endpoints, restClient.Object, responseValidator, actionConvertor);
+
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiAction>>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiAction>>>(response => response.Data.Data = new List<ApiAction>()).ToTask());
+
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiAction>>>(It.Is<IRestRequest>(request => request.Parameters.Exists(p => (long)p.Value == 456))))
+                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiAction>>>(response => response.Data.Data = new List<ApiAction> { new ApiAction(), new ApiAction(), new ApiAction(), new ApiAction() }).ToTask());
+
             var graphService = new FullGraphService(endpoints, restClient.Object, responseValidator, mapService,
-                activityService);
+                activityService, actorService, actionService);
 
             const long mapId = 123;
             var map = await graphService.Get(mapId);
 
             Assert.Equal(mapId, map.Id);
             Assert.Equal(2, map.Activities.Count);
+            Assert.Equal(3, map.Actors.Count);
+            Assert.True(map.Activities.First(a => a.Id == 456).Actions.Count == 4);
+            var allActivitiesHaveNoActionsExcept456 = map.Activities.Where(a => a.Id != 456).All(a => !a.Actions.Any());
+            Assert.True(allActivitiesHaveNoActionsExcept456);
         }
 
 

@@ -14,6 +14,7 @@ namespace Gorman.API.Framework {
         public string ActionsUrl { get; set; }
         public string MapActivitiesUrl => "/maps/{mapId}/activities";
         public string MapActorsUrl => "/maps/{mapId}/actors";
+        public string ActivityActionsUrl => "activities/{activityId}/actions";
 
         public static async Task<Endpoints> Get(Uri baseUrl) {
             return await Get(new RestClient(baseUrl), new ResponseValidator());

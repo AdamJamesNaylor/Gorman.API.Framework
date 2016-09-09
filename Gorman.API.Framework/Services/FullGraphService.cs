@@ -9,10 +9,12 @@ namespace Gorman.API.Framework.Services {
     public class FullGraphService
         : BaseService {
 
-        public FullGraphService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator, IMapService mapService, IActivityService activityService)
+        public FullGraphService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator, IMapService mapService, IActivityService activityService, IActorService actorService, IActionService actionService)
             : base(endpoints, restClient, responseValidator) {
             _mapService = mapService;
             _activityService = activityService;
+            _actorService = actorService;
+            _actionService = actionService;
         }
 
         public FullGraphService(Endpoints endpoints)
@@ -23,14 +25,21 @@ namespace Gorman.API.Framework.Services {
         public async Task<Map> Get(long mapId) {
             var mapTask = _mapService.Get(mapId);
             var activitesTask = _activityService.List(mapId);
+            var actorsTask = _actorService.List(mapId);
 
             var map = await mapTask;
             map.Activities = (await activitesTask).ToList();
+            foreach (var activity in map.Activities) {
+                activity.Actions = await _actionService.List(activity.Id);
+            }
+            map.Actors = (await actorsTask).ToList();
 
             return map;
         }
 
         private readonly IMapService _mapService;
         private readonly IActivityService _activityService;
+        private readonly IActorService _actorService;
+        private readonly IActionService _actionService;
     }
 }

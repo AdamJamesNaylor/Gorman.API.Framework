@@ -16,7 +16,13 @@ namespace Gorman.API.Framework.Convertors {
         }
 
         public Actor Convert(API.Domain.Actor actor) {
-            throw new System.NotImplementedException();
+            return new Actor {
+                Id = actor.Id,
+                MapId = actor.MapId,
+                PositionX = actor.PositionX,
+                PositionY = actor.PositionY,
+                ImageUrl = actor.ImageUrl
+            };
         }
     }
 }

@@ -7,29 +7,29 @@ namespace Gorman.API.Framework.Services {
     using API.Domain;
     using Convertors;
     using RestSharp;
-    using Actor = Domain.Actor;
-    using ApiActor = API.Domain.Actor;
+    using Action = Domain.Action;
+    using ApiAction = API.Domain.Action;
 
-    public interface IActorService
+    public interface IActionService
         : IBaseService {
-        //Task<Actor> Add(Actor map);
-        Task<Collection<Actor>> List(long mapId);
+        //Task<Action> Add(Action action);
+        Task<Collection<Action>> List(long activityId);
     }
 
-    public class ActorService
-        : BaseService, IActorService {
+    public class ActionService
+        : BaseService, IActionService {
 
-        public ActorService(Endpoints endpoints)
+        public ActionService(Endpoints endpoints)
             : base(endpoints) {
         }
 
-        public ActorService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
-            IActorConvertor actorConvertor)
+        public ActionService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
+            IActionConvertor actionConvertor)
             : base(endpoints, restClient, responseValidator) {
-            _actorConvertor = actorConvertor;
+            _actionConvertor = actionConvertor;
         }
 
-        public async Task<Collection<Actor>> List(long mapId) {
+        public async Task<Collection<Action>> List(long mapId) {
 
             var request = new RestRequest(_endpoints.MapActorsUrl, Method.GET) {
                 RequestFormat = DataFormat.Json
@@ -37,9 +37,9 @@ namespace Gorman.API.Framework.Services {
 
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
-            var restResponse = await _restClient.ExecuteTaskAsync<Response<List<ApiActor>>>(request);
-            var actors = _responseValidator.Validate(restResponse.Data);
-            return _actorConvertor.Convert(actors);
+            var restResponse = await _restClient.ExecuteTaskAsync<Response<List<ApiAction>>>(request);
+            var actions = _responseValidator.Validate(restResponse.Data);
+            return _actionConvertor.Convert(actions);
         }
 
         //public async Task<Actor> Add(Actor map) {
@@ -56,11 +56,12 @@ namespace Gorman.API.Framework.Services {
         //}
 
         private RestRequest CreateRequest(Method method) {
-            return new RestRequest(_endpoints.MapActorsUrl, method) {
+            return new RestRequest(_endpoints.ActivityActionsUrl, method) {
                 RequestFormat = DataFormat.Json
             };
         }
 
-        private readonly IActorConvertor _actorConvertor;
+        private readonly IActionConvertor _actionConvertor;
     }
+
 }

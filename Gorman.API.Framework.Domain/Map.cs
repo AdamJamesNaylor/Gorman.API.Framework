@@ -5,5 +5,6 @@ namespace Gorman.API.Framework.Domain {
     public class Map {
         public long Id { get; set; }
         public List<Activity> Activities { get; set; }
+        public List<Actor> Actors { get; set; }
     }
 }
