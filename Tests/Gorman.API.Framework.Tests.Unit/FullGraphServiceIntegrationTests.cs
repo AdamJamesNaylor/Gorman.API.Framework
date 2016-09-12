@@ -25,8 +25,8 @@ namespace Gorman.API.Framework.Tests.Unit {
 
             var responseValidator = new ResponseValidator();
 
-            restClient.Setup(r => r.ExecuteTaskAsync<EndpointListResponse>(It.IsAny<IRestRequest>()))
-                .Returns(() => new RestResponse<EndpointListResponse> { Data = new EndpointListResponse { MapsUrl = "/blah" } }.ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<EndpointList>>(It.IsAny<IRestRequest>()))
+                .Returns(() => CreateMockResponse<Response<EndpointList>>(response => response.Data.Data = new EndpointList { MapsUrl = "/blah" }).ToTask());
 
             var endpoints = await Endpoints.Get(restClient.Object, responseValidator);
 
@@ -80,6 +80,7 @@ namespace Gorman.API.Framework.Tests.Unit {
             where T : new() {
 
             var result = new RestResponse<T> {
+                ResponseStatus = ResponseStatus.Completed,
                 Data = new T()
             };
             callback?.Invoke(result);

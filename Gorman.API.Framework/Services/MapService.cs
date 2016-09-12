@@ -4,6 +4,7 @@ namespace Gorman.API.Framework.Services {
     using System.Threading.Tasks;
     using Convertors;
     using RestSharp;
+    using Validators;
     using Response = API.Domain.Response<API.Domain.Map>;
     using Map = Domain.Map;
 
@@ -34,7 +35,7 @@ namespace Gorman.API.Framework.Services {
             request.AddParameter("mapId", id, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
-            var map = _responseValidator.Validate(restResponse.Data);
+            var map = _responseValidator.Validate(restResponse);
             return _mapConvertor.Convert(map);
         }
 
@@ -47,7 +48,7 @@ namespace Gorman.API.Framework.Services {
             request.AddBody(map);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
-            var response = _responseValidator.Validate(restResponse.Data);
+            var response = _responseValidator.Validate(restResponse);
             return _mapConvertor.Convert(response);
         }
 

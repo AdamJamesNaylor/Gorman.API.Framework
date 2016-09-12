@@ -4,6 +4,7 @@ namespace Gorman.API.Framework.Services {
     using System.Threading.Tasks;
     using API.Domain;
     using RestSharp;
+    using Validators;
 
     public interface IBaseService {
     }

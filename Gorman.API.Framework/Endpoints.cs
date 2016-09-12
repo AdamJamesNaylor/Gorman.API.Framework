@@ -4,6 +4,7 @@ namespace Gorman.API.Framework {
     using System.Threading.Tasks;
     using API.Domain;
     using RestSharp;
+    using Validators;
 
     public class Endpoints {
 
@@ -23,16 +24,16 @@ namespace Gorman.API.Framework {
         public static async Task<Endpoints> Get(IRestClient restClient, IResponseValidator responseValidator) {
             var request = new RestRequest();
 
-            var response = await restClient.ExecuteTaskAsync<EndpointListResponse>(request);
-
-            var endpoints = Convert(response.Data);
+            var response = await restClient.ExecuteTaskAsync<Response<EndpointList>>(request);
+            var endpointList = responseValidator.Validate(response);
+            var endpoints = Convert(endpointList);
             endpoints.BaseUrl = restClient.BaseUrl;
             return endpoints;
         }
 
         private Endpoints() { }
 
-        private static Endpoints Convert(EndpointListResponse response) {
+        private static Endpoints Convert(EndpointList response) {
             return new Endpoints {
                 MapsUrl = response.MapsUrl,
                 ActivitiesUrl = response.ActivitiesUrl,

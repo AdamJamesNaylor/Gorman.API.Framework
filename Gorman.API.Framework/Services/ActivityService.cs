@@ -42,7 +42,7 @@ namespace Gorman.API.Framework.Services {
             request.AddBody(activity);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response<ApiActivity>>(request);
-            var response = _responseValidator.Validate(restResponse.Data);
+            var response = _responseValidator.Validate(restResponse);
             return _activityConvertor.Convert(response);
         }
         
@@ -55,7 +55,7 @@ namespace Gorman.API.Framework.Services {
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response<List<ApiActivity>>>(request);
-            var result = _responseValidator.Validate(restResponse.Data);
+            var result = _responseValidator.Validate(restResponse);
             return _activityConvertor.Convert(result);
         }
 

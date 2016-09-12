@@ -11,6 +11,7 @@ namespace Gorman.API.Framework.Tests.Unit {
     using Newtonsoft.Json;
     using RestSharp;
     using Services;
+    using Validators;
     using Xunit;
     using Map = Domain.Map;
 
@@ -22,14 +23,8 @@ namespace Gorman.API.Framework.Tests.Unit {
 
             restClient.Setup(r => r.BaseUrl).Returns(new Uri("http://www.blah.com"));
 
-            restClient.Setup(r => r.ExecuteTaskAsync<EndpointListResponse>(It.IsAny<IRestRequest>()))
-                .Returns(
-                    () =>
-                        Task.FromResult(
-                            (IRestResponse<EndpointListResponse>)
-                                new RestResponse<EndpointListResponse> {
-                                    Data = new EndpointListResponse {MapsUrl = "/blah"}
-                                }));
+            restClient.Setup(r => r.ExecuteTaskAsync<Response<EndpointList>>(It.IsAny<IRestRequest>()))
+                .Returns(() => CreateMockResponse<Response<EndpointList>>(response => response.Data.Data = new EndpointList { MapsUrl = "/blah"}).ToTask());
 
             restClient.Setup(r => r.ExecuteTaskAsync<Response<API.Domain.Map>>(It.IsAny<IRestRequest>()))
                 .Returns((IRestRequest r) => CreateMockResponse<Response<API.Domain.Map>>(response => response.Data.Data = new API.Domain.Map {Id = (r.GetBody<Map>()).Id}).ToTask());
@@ -56,6 +51,7 @@ namespace Gorman.API.Framework.Tests.Unit {
             where T : new() {
 
             var result = new RestResponse<T> {
+                ResponseStatus = ResponseStatus.Completed,
                 Data = new T()
             };
             callback?.Invoke(result);

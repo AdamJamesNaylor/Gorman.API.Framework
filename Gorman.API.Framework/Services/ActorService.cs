@@ -41,7 +41,7 @@ namespace Gorman.API.Framework.Services {
             request.AddBody(actor);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response<ApiActor>>(request);
-            var response = _responseValidator.Validate(restResponse.Data);
+            var response = _responseValidator.Validate(restResponse);
             return _actorConvertor.Convert(response);
         }
 
@@ -54,7 +54,7 @@ namespace Gorman.API.Framework.Services {
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response<List<ApiActor>>>(request);
-            var actors = _responseValidator.Validate(restResponse.Data);
+            var actors = _responseValidator.Validate(restResponse);
             return _actorConvertor.Convert(actors);
         }
 

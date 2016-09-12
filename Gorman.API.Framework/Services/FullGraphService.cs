@@ -5,6 +5,12 @@ namespace Gorman.API.Framework.Services {
     using Convertors;
     using Domain;
     using RestSharp;
+    using Validators;
+
+    //http://tacnet.io/tacsketch/#
+    //http://www.stratuga.com/editor/
+    //http://www.csgoboard.com/board
+    //https://katanaapp.com
 
     public class FullGraphService
         : BaseService {
