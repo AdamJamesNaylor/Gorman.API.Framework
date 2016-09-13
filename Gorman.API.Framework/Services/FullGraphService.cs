@@ -26,6 +26,9 @@ namespace Gorman.API.Framework.Services {
         public FullGraphService(Endpoints endpoints)
             : base(endpoints) {
             _mapService = new MapService(endpoints, _restClient, new MapValidator(), _responseValidator, new MapConvertor());
+            _activityService = new ActivityService(endpoints, _restClient, _responseValidator, new ActivityConvertor(), new AddActivityValidator());
+            _actorService = new ActorService(endpoints, _restClient, _responseValidator, new ActorConvertor(), new AddActorValidator());
+            _actionService = new ActionService(endpoints, _restClient, _responseValidator, new ActionConvertor(), new AddActionValidator());
         }
 
         public async Task<Map> Get(long mapId) {
