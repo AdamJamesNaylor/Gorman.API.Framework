@@ -14,18 +14,18 @@
         public T Validate<T>(IRestResponse<Response<T>> response) {
             if (response.ResponseStatus != ResponseStatus.Completed)
                 throw new ResponseValidationException(
-                    $"There was a problem completing the request to {response.Request?.Resource}. {response.ErrorMessage}");
+                    $"There was a problem completing the request to '{response.Request?.Resource}'. '{response.ErrorMessage}'");
 
             if (response.StatusCode == HttpStatusCode.NotFound)
-                throw new NotFoundResponseValidationException($"The request to {response.Request?.Resource} returned a 404 not found response.");
+                throw new NotFoundResponseValidationException($"The request to '{response.Request?.Resource}' returned a 404 not found response.");
 
             if (!response.Data.IsSuccessful())
                 throw new ResponseValidationException(
-                    $"The endpoint {response.Request.Resource} returned the error {response.Data.Error}.");
+                    $"The endpoint '{response.Request.Resource}' returned the error '{response.Data.Error}'.");
 
             if (response.Data.Data == null)
                 throw new ResponseValidationException(
-                    $"There was a problem deserialising the response '{response.Content}' to type {typeof (Response<T>).FullName}.");
+                    $"The request to '{response.Request?.Resource}' resulted in a problem deserialising the response '{response.Content}' to type {typeof (Response<T>).FullName}.");
 
             return response.Data.Data;
         }

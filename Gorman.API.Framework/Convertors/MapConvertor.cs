@@ -5,13 +5,21 @@ namespace Gorman.API.Framework.Convertors {
 
     public interface IMapConvertor {
         Map Convert(ApiMap map);
+        ApiMap Convert(Map map);
     }
 
     public class MapConvertor
         : IMapConvertor {
         public Map Convert(ApiMap map) {
             return new Map {
-                Id = map.Id
+                Id = map.Id,
+                TileUrl = map.TileUrl
+            };
+        }
+        public ApiMap Convert(Map map) {
+            return new ApiMap {
+                Id = map.Id,
+                TileUrl = map.TileUrl
             };
         }
     }

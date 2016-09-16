@@ -20,6 +20,7 @@ namespace Gorman.API.Framework.Services {
         public MapService(Endpoints endpoints)
             : base(endpoints) {
             _addMapValidator = new MapValidator();
+            _mapConvertor = new MapConvertor();
         }
 
         public MapService(Endpoints endpoints, IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator, IMapConvertor mapConvertor)
@@ -32,7 +33,7 @@ namespace Gorman.API.Framework.Services {
         public async Task<Map> Get(long id) {
 
             var request = CreateRequest(Method.GET);
-            request.AddParameter("mapId", id, ParameterType.UrlSegment);
+            request.AddUrlSegment("mapId", id.ToString());
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
             var map = _responseValidator.Validate(restResponse);
@@ -44,8 +45,11 @@ namespace Gorman.API.Framework.Services {
             if (!_addMapValidator.IsValidForAdd(map))
                 throw new Exception();
 
-            var request = CreateRequest(Method.POST);
-            request.AddBody(map);
+            var request = new RestRequest(_endpoints.MapsUrl, Method.POST) {
+                RequestFormat = DataFormat.Json
+            };
+            request.AddJsonBody(_mapConvertor.Convert(map));
+            request.AddUrlSegment("mapId", "");
 
             var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
             var response = _responseValidator.Validate(restResponse);
