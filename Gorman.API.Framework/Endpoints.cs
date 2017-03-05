@@ -13,9 +13,9 @@ namespace Gorman.API.Framework {
         public string ActivitiesUrl { get; set; }
         public string ActorsUrl { get; set; }
         public string ActionsUrl { get; set; }
-        public string MapActivitiesUrl => "/maps/{mapId}/activities";
-        public string MapActorsUrl => "/maps/{mapId}/actors";
-        public string ActivityActionsUrl => "activities/{activityId}/actions";
+        public string MapActivitiesUrl { get; set; } //=> "/maps/{mapId}/activities";
+        public string MapActorsUrl { get; set; }//=> "/maps/{mapId}/actors";
+        public string ActivityActionsUrl { get; set; }//=> "activities/{activityId}/actions";
 
         public static async Task<Endpoints> Get(Uri baseUrl) {
             return await Get(new RestClient(baseUrl), new ResponseValidator());
@@ -24,7 +24,7 @@ namespace Gorman.API.Framework {
         public static async Task<Endpoints> Get(IRestClient restClient, IResponseValidator responseValidator) {
             var request = new RestRequest();
 
-            var response = await restClient.ExecuteTaskAsync<Response<EndpointList>>(request);
+            var response = await restClient.ExecuteTaskAsync<EndpointList>(request);
             var endpointList = responseValidator.Validate(response);
             var endpoints = Convert(endpointList);
             endpoints.BaseUrl = restClient.BaseUrl;

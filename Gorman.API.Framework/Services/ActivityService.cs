@@ -30,6 +30,8 @@ namespace Gorman.API.Framework.Services {
 
         public ActivityService(Endpoints endpoints)
             : base(endpoints) {
+            _activityConvertor = new ActivityConvertor();
+            _addActivityValidator = new AddActivityValidator();
         }
 
         public async Task<Activity> Add(Activity activity) {
@@ -37,32 +39,42 @@ namespace Gorman.API.Framework.Services {
             if (!_addActivityValidator.IsValidForAdd(activity))
                 throw new Exception();
 
-            var request = CreateRequest(Method.POST);
-            request.AddParameter("mapId", activity.MapId);
+            var request = CreateRequest(Method.POST, _endpoints.ActivitiesUrl);
+            request.AddParameter("activityId", "", ParameterType.UrlSegment);
             request.AddBody(activity);
 
-            var restResponse = await _restClient.ExecuteTaskAsync<Response<ApiActivity>>(request);
+            var restResponse = await _restClient.ExecuteTaskAsync<ApiActivity>(request);
             var response = _responseValidator.Validate(restResponse);
             return _activityConvertor.Convert(response);
         }
-        
+
+        public async Task<Activity> Get(long activityId, bool fullGraph = false) {
+            var request = CreateRequest(Method.GET, _endpoints.ActivitiesUrl);
+            request.AddParameter("activityId", activityId, ParameterType.UrlSegment);
+
+            var restResponse = await _restClient.ExecuteTaskAsync<ApiActivity>(request);
+            var result = _responseValidator.Validate(restResponse);
+            return _activityConvertor.Convert(result);
+        }
+
         public async Task<Collection<Activity>> List(Map map) {
             return await List(map.Id);
         }
 
         public async Task<Collection<Activity>> List(long mapId) {
-            var request = CreateRequest(Method.GET);
+            var request = CreateRequest(Method.GET, _endpoints.MapActivitiesUrl);
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
-            var restResponse = await _restClient.ExecuteTaskAsync<Response<List<ApiActivity>>>(request);
+            var restResponse = await _restClient.ExecuteTaskAsync<List<ApiActivity>>(request);
             var result = _responseValidator.Validate(restResponse);
             return _activityConvertor.Convert(result);
         }
 
-        private RestRequest CreateRequest(Method method) {
-            return new RestRequest(_endpoints.MapActivitiesUrl, method) {
-                RequestFormat = DataFormat.Json
-            };
+        private RestRequest CreateRequest(Method method, string resource) {
+            return new RestRequest(resource, method) {
+                RequestFormat = DataFormat.Json,
+                JsonSerializer = new JsonSerializer()
+        };
         }
 
         private readonly IActivityConvertor _activityConvertor;

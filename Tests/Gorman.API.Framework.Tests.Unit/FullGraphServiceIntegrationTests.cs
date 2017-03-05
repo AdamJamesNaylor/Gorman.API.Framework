@@ -25,8 +25,8 @@ namespace Gorman.API.Framework.Tests.Unit {
 
             var responseValidator = new ResponseValidator();
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<EndpointList>>(It.IsAny<IRestRequest>()))
-                .Returns(() => CreateMockResponse<Response<EndpointList>>(response => response.Data.Data = new EndpointList { MapsUrl = "/blah" }).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<EndpointList>(It.IsAny<IRestRequest>()))
+                .Returns(() => CreateMockResponse<EndpointList>(response => response.Data = new EndpointList { MapsUrl = "/blah" }).ToTask());
 
             var endpoints = await Endpoints.Get(restClient.Object, responseValidator);
 
@@ -34,32 +34,32 @@ namespace Gorman.API.Framework.Tests.Unit {
             var mapConvertor = new MapConvertor();
             var mapService = new MapService(endpoints, restClient.Object, mapValidator, responseValidator, mapConvertor);
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<ApiMap>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<ApiMap>>(response => response.Data.Data = new ApiMap { Id = r.FindParameter<int>("mapId") }).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<ApiMap>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<ApiMap>(response => response.Data = new ApiMap { Id = r.FindParameter<int>("mapId") }).ToTask());
 
             var addActivityValidator = new AddActivityValidator();
             var activityConvertor = new ActivityConvertor();
             var activityService = new ActivityService(endpoints, restClient.Object, responseValidator, activityConvertor, addActivityValidator);
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActivity>>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActivity>>>(response => response.Data.Data = new List<ApiActivity> {new ApiActivity { Id = 456 }, new ApiActivity()}).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<List<ApiActivity>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<List<ApiActivity>>(response => response.Data = new List<ApiActivity> {new ApiActivity { Id = 456 }, new ApiActivity()}).ToTask());
 
             var addActorValidator = new AddActorValidator();
             var actorConvertor = new ActorConvertor();
             var actorService = new ActorService(endpoints, restClient.Object, responseValidator, actorConvertor, addActorValidator);
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiActor>>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiActor>>>(response => response.Data.Data = new List<ApiActor> { new ApiActor(), new ApiActor(), new ApiActor() }).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<List<ApiActor>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<List<ApiActor>>(response => response.Data = new List<ApiActor> { new ApiActor(), new ApiActor(), new ApiActor() }).ToTask());
 
             var addActionValidator = new AddActionValidator();
             var actionConvertor = new ActionConvertor();
             var actionService = new ActionService(endpoints, restClient.Object, responseValidator, actionConvertor, addActionValidator);
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiAction>>>(It.IsAny<IRestRequest>()))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiAction>>>(response => response.Data.Data = new List<ApiAction>()).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<List<ApiAction>>(It.IsAny<IRestRequest>()))
+                .Returns((IRestRequest r) => CreateMockResponse<List<ApiAction>>(response => response.Data = new List<ApiAction>()).ToTask());
 
-            restClient.Setup(r => r.ExecuteTaskAsync<Response<List<ApiAction>>>(It.Is<IRestRequest>(request => request.Parameters.Exists(p => (long)p.Value == 456))))
-                .Returns((IRestRequest r) => CreateMockResponse<Response<List<ApiAction>>>(response => response.Data.Data = new List<ApiAction> { new ApiAction(), new ApiAction(), new ApiAction(), new ApiAction() }).ToTask());
+            restClient.Setup(r => r.ExecuteTaskAsync<List<ApiAction>>(It.Is<IRestRequest>(request => request.Parameters.Exists(p => (long)p.Value == 456))))
+                .Returns((IRestRequest r) => CreateMockResponse<List<ApiAction>>(response => response.Data = new List<ApiAction> { new ApiAction(), new ApiAction(), new ApiAction(), new ApiAction() }).ToTask());
 
             var graphService = new FullGraphService(endpoints, restClient.Object, responseValidator, mapService,
                 activityService, actorService, actionService);

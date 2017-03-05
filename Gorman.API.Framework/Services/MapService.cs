@@ -3,9 +3,9 @@ namespace Gorman.API.Framework.Services {
     using System;
     using System.Threading.Tasks;
     using Convertors;
+    using Newtonsoft.Json;
     using RestSharp;
     using Validators;
-    using Response = API.Domain.Response<API.Domain.Map>;
     using Map = Domain.Map;
 
     public interface IMapService
@@ -35,7 +35,7 @@ namespace Gorman.API.Framework.Services {
             var request = CreateRequest(Method.GET);
             request.AddUrlSegment("mapId", id.ToString());
 
-            var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
+            var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
             var map = _responseValidator.Validate(restResponse);
             return _mapConvertor.Convert(map);
         }
@@ -45,13 +45,17 @@ namespace Gorman.API.Framework.Services {
             if (!_addMapValidator.IsValidForAdd(map))
                 throw new Exception();
 
-            var request = new RestRequest(_endpoints.MapsUrl, Method.POST) {
+            var request = new RestRequest("/maps", Method.POST)
+            {
                 RequestFormat = DataFormat.Json
             };
-            request.AddJsonBody(_mapConvertor.Convert(map));
-            request.AddUrlSegment("mapId", "");
 
-            var restResponse = await _restClient.ExecuteTaskAsync<Response>(request);
+            var serialisedMap = JsonConvert.SerializeObject(_mapConvertor.Convert(map));
+            //request.AddJsonBody(_mapConvertor.Convert(map));
+            request.AddParameter("application/json", serialisedMap, ParameterType.RequestBody);
+            //request.AddUrlSegment("mapId", "");
+
+            var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
             var response = _responseValidator.Validate(restResponse);
             return _mapConvertor.Convert(response);
         }
