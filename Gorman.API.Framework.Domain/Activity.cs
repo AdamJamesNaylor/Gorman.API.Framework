@@ -13,6 +13,10 @@ namespace Gorman.API.Framework.Domain {
         [JsonProperty("map_id")]
         public long MapId { get; set; }
 
+        [JsonProperty("actions")]
         public Collection<Action> Actions { get; set; }
+
+        [JsonProperty("actors")]
+        public Collection<Actor> Actors { get; set; }
     }
 }
