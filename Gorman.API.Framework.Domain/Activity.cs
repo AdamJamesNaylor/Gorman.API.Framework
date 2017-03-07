@@ -10,6 +10,9 @@ namespace Gorman.API.Framework.Domain {
         [JsonProperty("parent_id")]
         public long ParentId { get; set; }
 
+        [JsonProperty("activities")]
+        public Collection<Activity> Activities { get; set; }
+
         [JsonProperty("map_id")]
         public long MapId { get; set; }
 
@@ -18,5 +21,11 @@ namespace Gorman.API.Framework.Domain {
 
         [JsonProperty("actors")]
         public Collection<Actor> Actors { get; set; }
+
+        public Activity() {
+            Activities = new Collection<Activity>();
+            Actions = new Collection<Action>();
+            Actors = new Collection<Actor>();
+        }
     }
 }

@@ -9,5 +9,13 @@ namespace Gorman.API.Framework.Domain
         public long ActorId { get; set; }
         public long ActivityId { get; set; }
         public Dictionary<string, string> Parameters{ get; set; }
+
+        public Action() {
+            Parameters = new Dictionary<string, string>();
+        }
+    }
+
+    public static class ActionParameter {
+        public static string PositionX = "position_x";
     }
 }

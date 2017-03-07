@@ -1,8 +1,4 @@
 namespace Gorman.API.Framework.Services {
-    using System;
-    using System.Collections.Specialized;
-    using System.Threading.Tasks;
-    using API.Domain;
     using RestSharp;
     using Validators;
 
@@ -18,10 +14,8 @@ namespace Gorman.API.Framework.Services {
             _responseValidator = responseValidator;
         }
 
-        protected BaseService(Endpoints endpoints) {
-            _endpoints = endpoints;
-            _restClient = new RestClient(endpoints.BaseUrl);
-            _responseValidator = new ResponseValidator();
+        protected BaseService(Endpoints endpoints) :
+            this(endpoints, new RestClient(endpoints.BaseUrl), new ResponseValidator()) {
         }
 
         protected readonly Endpoints _endpoints;

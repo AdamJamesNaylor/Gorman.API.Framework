@@ -41,25 +41,26 @@ namespace Gorman.API.Framework.Services {
             request.AddBody(action);
 
             var restResponse = await _restClient.ExecuteTaskAsync<ApiAction>(request);
-            var response = _responseValidator.Validate(restResponse);
-            return _actionConvertor.Convert(response);
+            _responseValidator.Validate(restResponse);
+            return _actionConvertor.Convert(restResponse.Data);
         }
 
         public async Task<Collection<Action>> List(long mapId) {
-
-            var request = new RestRequest(_endpoints.MapActorsUrl, Method.GET) {
+            throw new NotImplementedException();
+            var request = new RestRequest(_endpoints.ActorsUrl, Method.GET) {
                 RequestFormat = DataFormat.Json
             };
 
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<List<ApiAction>>(request);
-            var actions = _responseValidator.Validate(restResponse);
-            return _actionConvertor.Convert(actions);
+            _responseValidator.Validate(restResponse);
+            return _actionConvertor.Convert(restResponse.Data);
         }
 
         private RestRequest CreateRequest(Method method) {
-            return new RestRequest(_endpoints.ActivityActionsUrl, method) {
+            throw new NotImplementedException();
+            return new RestRequest(_endpoints.ActorsUrl, method) {
                 RequestFormat = DataFormat.Json
             };
         }

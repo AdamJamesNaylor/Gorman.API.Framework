@@ -76,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EndpointsIntegrationTests.cs" />
-    <Compile Include="FullGraphServiceIntegrationTests.cs" />
     <Compile Include="MapServiceIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

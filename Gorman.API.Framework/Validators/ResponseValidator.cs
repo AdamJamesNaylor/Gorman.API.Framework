@@ -2,17 +2,16 @@
     using System;
     using System.Net;
     using System.Runtime.Serialization;
-    using API.Domain;
     using Newtonsoft.Json;
     using RestSharp;
 
     public interface IResponseValidator {
-        T Validate<T>(IRestResponse<T> response);
+        void Validate<T>(IRestResponse<T> response);
     }
 
     public class ResponseValidator
         : IResponseValidator {
-        public T Validate<T>(IRestResponse<T> response) {
+        public void Validate<T>(IRestResponse<T> response) {
             if (response.ResponseStatus != ResponseStatus.Completed)
                 throw new ResponseValidationException(
                     $"There was a problem completing the request to '{response.Request?.Resource}'. '{response.ErrorMessage}'");
@@ -30,8 +29,6 @@
             if (response.Data == null)
                 throw new ResponseValidationException(
                     $"The request to '{response.Request?.Resource}' resulted in a problem deserialising the response '{response.Content}' to type {typeof (T).FullName}.");
-
-            return response.Data;
         }
     }
 

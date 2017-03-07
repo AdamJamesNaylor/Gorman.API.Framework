@@ -36,8 +36,8 @@ namespace Gorman.API.Framework.Services {
             request.AddUrlSegment("mapId", id.ToString());
 
             var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
-            var map = _responseValidator.Validate(restResponse);
-            return _mapConvertor.Convert(map);
+            _responseValidator.Validate(restResponse);
+            return _mapConvertor.Convert(restResponse.Data);
         }
 
         public async Task<Map> Add(Map map) {
@@ -56,8 +56,8 @@ namespace Gorman.API.Framework.Services {
             //request.AddUrlSegment("mapId", "");
 
             var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
-            var response = _responseValidator.Validate(restResponse);
-            return _mapConvertor.Convert(response);
+            _responseValidator.Validate(restResponse);
+            return _mapConvertor.Convert(restResponse.Data);
         }
 
         private RestRequest CreateRequest(Method method) {

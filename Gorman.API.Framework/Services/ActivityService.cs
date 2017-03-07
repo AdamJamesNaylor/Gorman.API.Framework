@@ -3,8 +3,8 @@ namespace Gorman.API.Framework.Services {
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Linq;
     using System.Threading.Tasks;
-    using API.Domain;
     using Convertors;
     using RestSharp;
     using Validators;
@@ -21,17 +21,21 @@ namespace Gorman.API.Framework.Services {
     public class ActivityService
         : BaseService, IActivityService {
 
-        public ActivityService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
-            IActivityConvertor activityConvertor, IAddActivityValidator addActivityValidator)
-            : base(endpoints, restClient, responseValidator) {
-            _activityConvertor = activityConvertor;
-            _addActivityValidator = addActivityValidator;
-        }
-
         public ActivityService(Endpoints endpoints)
             : base(endpoints) {
             _activityConvertor = new ActivityConvertor();
             _addActivityValidator = new AddActivityValidator();
+            _actionService = new ActionService(endpoints);
+            _actorService = new ActorService(endpoints);
+        }
+
+        public ActivityService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
+            IActivityConvertor activityConvertor, IAddActivityValidator addActivityValidator, IActionService actionService, IActorService actorService)
+            : base(endpoints, restClient, responseValidator) {
+            _activityConvertor = activityConvertor;
+            _addActivityValidator = addActivityValidator;
+            _actionService = actionService;
+            _actorService = actorService;
         }
 
         public async Task<Activity> Add(Activity activity) {
@@ -39,22 +43,28 @@ namespace Gorman.API.Framework.Services {
             if (!_addActivityValidator.IsValidForAdd(activity))
                 throw new Exception();
 
-            var request = CreateRequest(Method.POST, _endpoints.ActivitiesUrl);
-            request.AddParameter("activityId", "", ParameterType.UrlSegment);
-            request.AddBody(activity);
+            var request = new JsonRestRequest(_endpoints.ActivitiesUrl, Method.POST)
+                .RemoveUrlSegment("activityId")
+                .AddBody(activity);
 
             var restResponse = await _restClient.ExecuteTaskAsync<ApiActivity>(request);
-            var response = _responseValidator.Validate(restResponse);
-            return _activityConvertor.Convert(response);
+            _responseValidator.Validate(restResponse);
+            activity.Id = restResponse.Data.Id;
+
+            AddNestedActivities(activity);
+            AddActors(activity);
+
+            return _activityConvertor.Convert(restResponse.Data);
         }
 
         public async Task<Activity> Get(long activityId, bool fullGraph = false) {
-            var request = CreateRequest(Method.GET, _endpoints.ActivitiesUrl);
-            request.AddParameter("activityId", activityId, ParameterType.UrlSegment);
+            var request = new JsonRestRequest(_endpoints.ActivitiesUrl, Method.GET)
+                .AddUrlSegment("activityId", activityId.ToString());
 
             var restResponse = await _restClient.ExecuteTaskAsync<ApiActivity>(request);
-            var result = _responseValidator.Validate(restResponse);
-            return _activityConvertor.Convert(result);
+            _responseValidator.Validate(restResponse);
+
+            return _activityConvertor.Convert(restResponse.Data);
         }
 
         public async Task<Collection<Activity>> List(Map map) {
@@ -62,22 +72,40 @@ namespace Gorman.API.Framework.Services {
         }
 
         public async Task<Collection<Activity>> List(long mapId) {
-            var request = CreateRequest(Method.GET, _endpoints.MapActivitiesUrl);
+            throw new NotImplementedException();
+            var request = new JsonRestRequest(_endpoints.ActivitiesUrl, Method.GET);
             request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
 
             var restResponse = await _restClient.ExecuteTaskAsync<List<ApiActivity>>(request);
-            var result = _responseValidator.Validate(restResponse);
-            return _activityConvertor.Convert(result);
+            _responseValidator.Validate(restResponse);
+            return _activityConvertor.Convert(restResponse.Data);
         }
 
-        private RestRequest CreateRequest(Method method, string resource) {
-            return new RestRequest(resource, method) {
-                RequestFormat = DataFormat.Json,
-                JsonSerializer = new JsonSerializer()
-        };
+        private void AddActors(Activity activity) {
+            if (activity.Actors == null || !activity.Actors.Any())
+                return;
+
+            foreach (var actor in activity.Actors) {
+                actor.ActivityId = activity.Id;
+                var persistedActor = _actorService.Add(actor);
+                actor.Id = persistedActor.Id;
+            }
+        }
+
+        private void AddNestedActivities(Activity activity) {
+            if (activity.Activities == null || !activity.Activities.Any())
+                return;
+
+            foreach (var child in activity.Activities) {
+                child.ParentId = activity.Id;
+                var persistedChild = Add(child);
+                child.Id = persistedChild.Id;
+            }
         }
 
         private readonly IActivityConvertor _activityConvertor;
         private readonly IAddActivityValidator _addActivityValidator;
+        private readonly IActionService _actionService;
+        private readonly IActorService _actorService;
     }
 }
