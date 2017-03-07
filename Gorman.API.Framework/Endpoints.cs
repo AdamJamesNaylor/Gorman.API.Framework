@@ -14,7 +14,6 @@ namespace Gorman.API.Framework {
         public string ActorsUrl { get; set; }
         public string ActionsUrl { get; set; }
         public string MapActivitiesUrl { get; set; } //=> "/maps/{mapId}/activities";
-        public string MapActorsUrl { get; set; }//=> "/maps/{mapId}/actors";
         public string ActivityActionsUrl { get; set; }//=> "activities/{activityId}/actions";
 
         public static async Task<Endpoints> Get(Uri baseUrl) {

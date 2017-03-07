@@ -1,6 +1,5 @@
 ﻿
 namespace Gorman.API.Framework.Convertors {
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -20,16 +19,12 @@ namespace Gorman.API.Framework.Convertors {
                 Id = action.Id,
                 ActorId = action.ActorId,
                 ActivityId = action.ActivityId,
-                Type = Convert(action.Type)
+                //Type = Convert(action.Type)
             };
         }
 
         public Collection<Action> Convert(List<ApiAction> actions) {
             return new Collection<Action>(actions.Select(Convert).ToList());
-        }
-
-        private Domain.ActionType Convert(API.Domain.ActionType type) {
-            return (Domain.ActionType)Enum.Parse(typeof(Domain.ActionType), type.ToString());
         }
     }
 }

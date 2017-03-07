@@ -37,7 +37,7 @@ namespace Gorman.API.Framework.Services {
                 throw new Exception();
 
             var request = CreateRequest(Method.POST);
-            request.AddParameter("mapId", actor.MapId);
+            request.AddParameter("activityId", actor.ActivityId);
             request.AddBody(actor);
 
             var restResponse = await _restClient.ExecuteTaskAsync<ApiActor>(request);

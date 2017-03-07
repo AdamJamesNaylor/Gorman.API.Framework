@@ -18,7 +18,7 @@ namespace Gorman.API.Framework.Convertors {
         public Actor Convert(API.Domain.Actor actor) {
             return new Actor {
                 Id = actor.Id,
-                MapId = actor.MapId,
+                ActivityId = actor.ActivityId,
                 PositionX = actor.PositionX,
                 PositionY = actor.PositionY,
                 ImageUrl = actor.ImageUrl
