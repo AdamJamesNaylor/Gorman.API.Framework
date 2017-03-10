@@ -1,5 +1,4 @@
 namespace Gorman.API.Framework.Convertors {
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -12,12 +11,15 @@ namespace Gorman.API.Framework.Convertors {
 
     public class ActivityConvertor
         : IActivityConvertor {
+
         public Activity Convert(API.Domain.Activity activity) {
-            return new Activity {
+            var result = new Activity {
                 Id = activity.Id,
                 ParentId = activity.ParentId,
-                MapId = activity.MapId
+                MapId = activity.MapId,
             };
+
+            return result;
         }
 
         public Collection<Activity> Convert(IEnumerable<API.Domain.Activity> activities) {

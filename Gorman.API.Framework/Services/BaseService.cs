@@ -8,17 +8,17 @@ namespace Gorman.API.Framework.Services {
     public abstract class BaseService
         : IBaseService {
 
-        protected BaseService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator) {
-            _endpoints = endpoints;
+        protected BaseService(IRequestBuilder requestBuilder, IRestClient restClient, IResponseValidator responseValidator) {
+            _requestBuilder = requestBuilder;
             _restClient = restClient;
             _responseValidator = responseValidator;
         }
 
-        protected BaseService(Endpoints endpoints) :
-            this(endpoints, new RestClient(endpoints.BaseUrl), new ResponseValidator()) {
+        protected BaseService(IRequestBuilder requestBuilder) :
+            this(requestBuilder, new RestClient(requestBuilder.Endpoints.BaseUrl), new ResponseValidator()) {
         }
 
-        protected readonly Endpoints _endpoints;
+        protected readonly IRequestBuilder _requestBuilder;
 
         protected readonly IRestClient _restClient;
         protected readonly IResponseValidator _responseValidator;

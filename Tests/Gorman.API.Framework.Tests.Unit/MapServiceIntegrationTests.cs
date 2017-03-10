@@ -19,6 +19,7 @@ namespace Gorman.API.Framework.Tests.Unit {
 
         [Fact]
         public async Task AddMap() {
+            Assert.True(false, "Requires refactored.");
             var restClient = new Mock<IRestClient>();
 
             restClient.Setup(r => r.BaseUrl).Returns(new Uri("http://www.blah.com"));
@@ -36,7 +37,7 @@ namespace Gorman.API.Framework.Tests.Unit {
             var mapValidator = new MapValidator();
             var mapConvertor = new MapConvertor();
 
-            var mapService = new MapService(endpoints, restClient.Object, mapValidator, responseValidator, mapConvertor);
+            var mapService = new MapService(new RequestBuilder(endpoints), restClient.Object, mapValidator, responseValidator, mapConvertor);
 
             var map = new Map {
                 Id = 123

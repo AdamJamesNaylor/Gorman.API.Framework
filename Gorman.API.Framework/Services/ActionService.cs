@@ -4,7 +4,6 @@ namespace Gorman.API.Framework.Services {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
-    using API.Domain;
     using Convertors;
     using RestSharp;
     using Validators;
@@ -14,6 +13,7 @@ namespace Gorman.API.Framework.Services {
     public interface IActionService
         : IBaseService {
         Task<Action> Add(Action action);
+        Task<Action> Get(long activityId, long actionId, bool fullGraph = false);
         Task<Collection<Action>> List(long activityId);
     }
 
@@ -21,12 +21,12 @@ namespace Gorman.API.Framework.Services {
         : BaseService, IActionService {
 
         public ActionService(Endpoints endpoints)
-            : base(endpoints) {
+            : base(new RequestBuilder(endpoints)) {
         }
 
-        public ActionService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
+        public ActionService(IRequestBuilder requestBuilder, IRestClient restClient, IResponseValidator responseValidator,
             IActionConvertor actionConvertor, IAddActionValidator addActionValidator)
-            : base(endpoints, restClient, responseValidator) {
+            : base(requestBuilder, restClient, responseValidator) {
             _actionConvertor = actionConvertor;
             _addActionValidator = addActionValidator;
         }
@@ -36,33 +36,33 @@ namespace Gorman.API.Framework.Services {
             if (!_addActionValidator.IsValidForAdd(action))
                 throw new Exception();
 
-            var request = CreateRequest(Method.POST);
-            request.AddParameter("activityId", action.ActivityId);
-            request.AddBody(action);
+            var request = _requestBuilder.BuildAddActionRequest(action.ActivityId, action);
+            var response = await _restClient.ExecuteTaskAsync<ApiAction>(request);
+            _responseValidator.Validate(response);
+            return _actionConvertor.Convert(response.Data);
+        }
 
-            var restResponse = await _restClient.ExecuteTaskAsync<ApiAction>(request);
-            _responseValidator.Validate(restResponse);
-            return _actionConvertor.Convert(restResponse.Data);
+        public async Task<Action> Get(long activityId, long actionId, bool fullGraph = false) {
+            var request = _requestBuilder.BuildGetActionRequest(activityId, actionId);
+            var response = await _restClient.ExecuteTaskAsync<ApiAction>(request);
+            _responseValidator.Validate(response);
+            var apiAction = response.Data;
+            var action = _actionConvertor.Convert(apiAction);
+
+            if (!fullGraph)
+                return action;
+
+            return action;
         }
 
         public async Task<Collection<Action>> List(long mapId) {
             throw new NotImplementedException();
-            var request = new RestRequest(_endpoints.ActorsUrl, Method.GET) {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
+            var request = new JsonRestRequest(_requestBuilder.Endpoints.ActionsUrl, Method.GET)
+                .AddUrlSegment("mapId", mapId.ToString());
 
             var restResponse = await _restClient.ExecuteTaskAsync<List<ApiAction>>(request);
             _responseValidator.Validate(restResponse);
             return _actionConvertor.Convert(restResponse.Data);
-        }
-
-        private RestRequest CreateRequest(Method method) {
-            throw new NotImplementedException();
-            return new RestRequest(_endpoints.ActorsUrl, method) {
-                RequestFormat = DataFormat.Json
-            };
         }
 
         private readonly IActionConvertor _actionConvertor;

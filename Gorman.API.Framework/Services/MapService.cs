@@ -3,7 +3,6 @@ namespace Gorman.API.Framework.Services {
     using System;
     using System.Threading.Tasks;
     using Convertors;
-    using Newtonsoft.Json;
     using RestSharp;
     using Validators;
     using Map = Domain.Map;
@@ -18,13 +17,13 @@ namespace Gorman.API.Framework.Services {
         : BaseService, IMapService {
 
         public MapService(Endpoints endpoints)
-            : base(endpoints) {
+            : base(new RequestBuilder(endpoints)) {
             _addMapValidator = new MapValidator();
             _mapConvertor = new MapConvertor();
         }
 
-        public MapService(Endpoints endpoints, IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator, IMapConvertor mapConvertor)
-            : base(endpoints, restClient, responseValidator) {
+        public MapService(IRequestBuilder requestBuilder, IRestClient restClient, IMapValidator mapValidator, IResponseValidator responseValidator, IMapConvertor mapConvertor)
+            : base(requestBuilder, restClient, responseValidator) {
             _addMapValidator = mapValidator;
             _mapConvertor = mapConvertor;
         }
@@ -32,12 +31,10 @@ namespace Gorman.API.Framework.Services {
         //todo in the future let people get by GET /user/activity_name
         public async Task<Map> Get(long id) {
 
-            var request = CreateRequest(Method.GET);
-            request.AddUrlSegment("mapId", id.ToString());
-
-            var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
-            _responseValidator.Validate(restResponse);
-            return _mapConvertor.Convert(restResponse.Data);
+            var request = _requestBuilder.BuildGetMapRequest(id);
+            var response = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
+            _responseValidator.Validate(response);
+            return _mapConvertor.Convert(response.Data);
         }
 
         public async Task<Map> Add(Map map) {
@@ -45,25 +42,10 @@ namespace Gorman.API.Framework.Services {
             if (!_addMapValidator.IsValidForAdd(map))
                 throw new Exception();
 
-            var request = new RestRequest("/maps", Method.POST)
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            var serialisedMap = JsonConvert.SerializeObject(_mapConvertor.Convert(map));
-            //request.AddJsonBody(_mapConvertor.Convert(map));
-            request.AddParameter("application/json", serialisedMap, ParameterType.RequestBody);
-            //request.AddUrlSegment("mapId", "");
-
-            var restResponse = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
-            _responseValidator.Validate(restResponse);
-            return _mapConvertor.Convert(restResponse.Data);
-        }
-
-        private RestRequest CreateRequest(Method method) {
-            return new RestRequest(_endpoints.MapsUrl, method) {
-                RequestFormat = DataFormat.Json
-            };
+            var request = _requestBuilder.BuildAddMapRequest(map);
+            var response = await _restClient.ExecuteTaskAsync<API.Domain.Map>(request);
+            _responseValidator.Validate(response);
+            return _mapConvertor.Convert(response.Data);
         }
 
         private readonly IMapValidator _addMapValidator;

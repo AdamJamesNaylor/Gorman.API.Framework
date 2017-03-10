@@ -17,7 +17,7 @@ namespace Gorman.API.Framework.Convertors {
         public Action Convert(ApiAction action) {
             return new Action {
                 Id = action.Id,
-                ActorId = action.ActorId,
+                //ActorId = action.ActorId,
                 ActivityId = action.ActivityId,
                 //Type = Convert(action.Type)
             };

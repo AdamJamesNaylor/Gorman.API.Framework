@@ -1,5 +1,6 @@
 ﻿
 namespace Gorman.API.Framework.Domain {
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using Newtonsoft.Json;
 
@@ -26,6 +27,18 @@ namespace Gorman.API.Framework.Domain {
             Activities = new Collection<Activity>();
             Actions = new Collection<Action>();
             Actors = new Collection<Actor>();
+        }
+
+        public Action AddAction(Actor actor, IDictionary<string, string> parameters) {
+            var action = new Action {
+                Actor = actor,
+                ActivityId = this.Id,
+            };
+            foreach (var param in parameters) {
+                action.Parameters.Add(param.Key, param.Value);
+            }
+            this.Actions.Add(action);
+            return action;
         }
     }
 }

@@ -4,7 +4,6 @@ namespace Gorman.API.Framework.Services {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
-    using API.Domain;
     using Convertors;
     using RestSharp;
     using Validators;
@@ -14,6 +13,7 @@ namespace Gorman.API.Framework.Services {
     public interface IActorService
         : IBaseService {
         Task<Actor> Add(Actor actor);
+        Task<Actor> Get(long activityId, long actorId, bool fullGraph = false);
         Task<Collection<Actor>> List(long mapId);
     }
 
@@ -21,14 +21,14 @@ namespace Gorman.API.Framework.Services {
         : BaseService, IActorService {
 
         public ActorService(Endpoints endpoints)
-            : base(endpoints) {
+            : base(new RequestBuilder(endpoints)) {
             _actorConvertor = new ActorConvertor();
             _addActorValidator = new AddActorValidator();
         }
 
-        public ActorService(Endpoints endpoints, IRestClient restClient, IResponseValidator responseValidator,
+        public ActorService(IRequestBuilder requestBuilder, IRestClient restClient, IResponseValidator responseValidator,
             IActorConvertor actorConvertor, IAddActorValidator addActorValidator)
-            : base(endpoints, restClient, responseValidator) {
+            : base(requestBuilder, restClient, responseValidator) {
             _actorConvertor = actorConvertor;
             _addActorValidator = addActorValidator;
         }
@@ -38,20 +38,30 @@ namespace Gorman.API.Framework.Services {
             if (!_addActorValidator.IsValidForAdd(actor))
                 throw new Exception();
 
-            var request = new JsonRestRequest(_endpoints.ActorsUrl, Method.POST)
-                .AddUrlSegment("activityId", actor.ActivityId.ToString())
-                .RemoveUrlSegment("actorId")
-                .AddBody(actor);
-
-            var restResponse = await _restClient.ExecuteTaskAsync<ApiActor>(request);
-            _responseValidator.Validate(restResponse);
-            return _actorConvertor.Convert(restResponse.Data);
+            var request = _requestBuilder.BuildAddActorRequest(actor);
+            var response = await _restClient.ExecuteTaskAsync<ApiActor>(request);
+            _responseValidator.Validate(response);
+            return _actorConvertor.Convert(response.Data);
         }
+
+        public async Task<Actor> Get(long activityId, long actorId, bool fullGraph = false) {
+            var request = _requestBuilder.BuildGetActorRequest(activityId, actorId);
+            var response = await _restClient.ExecuteTaskAsync<ApiActor>(request);
+            _responseValidator.Validate(response);
+            var apiActor = response.Data;
+            var activity = _actorConvertor.Convert(apiActor);
+
+            if (!fullGraph)
+                return activity;
+
+            return activity;
+        }
+
 
         public async Task<Collection<Actor>> List(long mapId) {
             throw new NotImplementedException();
 
-            var request = new RestRequest(_endpoints.ActorsUrl, Method.GET) {
+            var request = new RestRequest(_requestBuilder.Endpoints.ActorsUrl, Method.GET) {
                 RequestFormat = DataFormat.Json
             };
 
