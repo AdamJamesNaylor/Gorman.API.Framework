@@ -22,6 +22,8 @@ namespace Gorman.API.Framework.Services {
 
         public ActionService(Endpoints endpoints)
             : base(new RequestBuilder(endpoints)) {
+            _actionConvertor = new ActionConvertor();
+            _addActionValidator = new AddActionValidator();
         }
 
         public ActionService(IRequestBuilder requestBuilder, IRestClient restClient, IResponseValidator responseValidator,

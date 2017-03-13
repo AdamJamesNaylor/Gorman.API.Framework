@@ -35,7 +35,7 @@ namespace Gorman.API.Framework.Domain {
                 ActivityId = this.Id,
             };
             foreach (var param in parameters) {
-                action.Parameters.Add(param.Key, param.Value);
+                action.Parameters.Add(new ActionParameter(param.Key, param.Value));
             }
             this.Actions.Add(action);
             return action;

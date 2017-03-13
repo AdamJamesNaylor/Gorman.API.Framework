@@ -24,6 +24,7 @@ namespace Gorman.API.Framework.Services {
         public JsonRestRequest BuildAddActionRequest(long activityId, Action action) {
             var request = new JsonRestRequest(Endpoints.ActionsUrl, Method.POST);
             request.AddUrlSegment("activityId", action.ActivityId.ToString());
+            request.RemoveUrlSegment("actionId");
             request.AddBody(action);
             return request;
         }

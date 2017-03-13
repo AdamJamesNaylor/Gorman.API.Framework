@@ -1,8 +1,6 @@
 ﻿
 namespace Gorman.API.Framework.Services {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading.Tasks;
     using Convertors;
@@ -11,15 +9,13 @@ namespace Gorman.API.Framework.Services {
     using Activity = Domain.Activity;
     using ApiActivity = API.Domain.Activity;
     using ApiAction = API.Domain.Action;
-    using Map = Domain.Map;
 
     public interface IActivityService {
         Task<Activity> Add(Activity activity);
-        Task<Collection<Activity>> List(Map map);
-        Task<Collection<Activity>> List(long mapId);
+        Task<Activity> Get(long activityId, bool fullGraph = false);
     }
 
-    public class ActivityService
+        public class ActivityService
         : BaseService, IActivityService {
 
         public ActivityService(Endpoints endpoints)
@@ -31,8 +27,10 @@ namespace Gorman.API.Framework.Services {
             _actionConvertor = new ActionConvertor();
         }
 
-        public ActivityService(IRequestBuilder requestBuilder, IRestClient restClient, IResponseValidator responseValidator,
-            IActivityConvertor activityConvertor, IActionService actionService, IActionConvertor actionConvertor, IAddActivityValidator addActivityValidator, IActorService actorService)
+        public ActivityService(IRequestBuilder requestBuilder, IRestClient restClient,
+            IResponseValidator responseValidator,
+            IActivityConvertor activityConvertor, IActionService actionService, IActionConvertor actionConvertor,
+            IAddActivityValidator addActivityValidator, IActorService actorService)
             : base(requestBuilder, restClient, responseValidator) {
             _activityConvertor = activityConvertor;
             _actionService = actionService;
@@ -51,22 +49,11 @@ namespace Gorman.API.Framework.Services {
             _responseValidator.Validate(response);
             activity.Id = response.Data.Id;
 
-            AddNestedActivities(activity);
-            AddActors(activity);
-            AddActions(activity);
+            await AddNestedActivities(activity);
+            await AddActors(activity);
+            await AddActions(activity);
 
             return _activityConvertor.Convert(response.Data);
-        }
-
-        private void AddActions(Activity activity) {
-            if (activity.Actions == null || !activity.Actions.Any())
-                return;
-
-            foreach (var action in activity.Actions) {
-                action.ActivityId = activity.Id;
-                var persistedAction = _actionService.Add(action);
-                action.Id = persistedAction.Id;
-            }
         }
 
         public async Task<Activity> Get(long activityId, bool fullGraph = false) {
@@ -105,39 +92,36 @@ namespace Gorman.API.Framework.Services {
             return apiAction;
         }
 
-        public async Task<Collection<Activity>> List(Map map) {
-            return await List(map.Id);
-        }
-
-        public async Task<Collection<Activity>> List(long mapId) {
-            throw new NotImplementedException();
-            var request = new JsonRestRequest(_requestBuilder.Endpoints.ActivitiesUrl, Method.GET);
-            request.AddParameter("mapId", mapId, ParameterType.UrlSegment);
-
-            var restResponse = await _restClient.ExecuteTaskAsync<List<ApiActivity>>(request);
-            _responseValidator.Validate(restResponse);
-            return _activityConvertor.Convert(restResponse.Data);
-        }
-
-        private void AddActors(Activity activity) {
+        private async Task AddActors(Activity activity) {
             if (activity.Actors == null || !activity.Actors.Any())
                 return;
 
             foreach (var actor in activity.Actors) {
                 actor.ActivityId = activity.Id;
-                var persistedActor = _actorService.Add(actor);
+                var persistedActor = await _actorService.Add(actor);
                 actor.Id = persistedActor.Id;
             }
         }
 
-        private void AddNestedActivities(Activity activity) {
+        private async Task AddNestedActivities(Activity activity) {
             if (activity.Activities == null || !activity.Activities.Any())
                 return;
 
             foreach (var child in activity.Activities) {
                 child.ParentId = activity.Id;
-                var persistedChild = Add(child);
+                var persistedChild = await Add(child);
                 child.Id = persistedChild.Id;
+            }
+        }
+
+        private async Task AddActions(Activity activity) {
+            if (activity.Actions == null || !activity.Actions.Any())
+                return;
+
+            foreach (var action in activity.Actions) {
+                action.ActivityId = activity.Id;
+                var persistedAction = await _actionService.Add(action);
+                action.Id = persistedAction.Id;
             }
         }
 

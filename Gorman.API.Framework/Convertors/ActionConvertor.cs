@@ -3,8 +3,10 @@ namespace Gorman.API.Framework.Convertors {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using Domain;
     using Action = Domain.Action;
     using ApiAction = API.Domain.Action;
+    using ActionParameter = Domain.ActionParameter;
 
     public interface IActionConvertor {
         Collection<Action> Convert(List<ApiAction> actions);
@@ -19,7 +21,7 @@ namespace Gorman.API.Framework.Convertors {
                 Id = action.Id,
                 //ActorId = action.ActorId,
                 ActivityId = action.ActivityId,
-                //Type = Convert(action.Type)
+                Parameters = action.Parameters.Select(p => new ActionParameter(p.Key, p.Value)).ToList()
             };
         }
 

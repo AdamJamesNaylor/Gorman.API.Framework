@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Action.cs" />
+    <Compile Include="ActionParameter.cs" />
     <Compile Include="Activity.cs" />
     <Compile Include="Actor.cs" />
     <Compile Include="Map.cs" />

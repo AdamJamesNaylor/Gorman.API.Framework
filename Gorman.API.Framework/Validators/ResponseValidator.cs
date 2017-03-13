@@ -12,6 +12,10 @@
     public class ResponseValidator
         : IResponseValidator {
         public void Validate<T>(IRestResponse<T> response) {
+            if (response.StatusCode == HttpStatusCode.OK && response.ResponseStatus != ResponseStatus.Completed)
+                throw new ResponseValidationException(
+                    $"The request to '{response.Request?.Resource}' was OK but handling the response failed. '{response.ErrorMessage}'");
+
             if (response.ResponseStatus != ResponseStatus.Completed)
                 throw new ResponseValidationException(
                     $"There was a problem completing the request to '{response.Request?.Resource}'. '{response.ErrorMessage}'");
